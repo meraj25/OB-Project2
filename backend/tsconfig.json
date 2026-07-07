@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "types": ["node"]    
   },
-  "include": ["src"],
+  "include": ["src", "src/middlewares/JWT.ts"],
   "exclude": ["node_modules", "dist"],
    "ts-node": {
         "files": true

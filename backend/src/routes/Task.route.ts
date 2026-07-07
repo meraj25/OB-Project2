@@ -1,0 +1,42 @@
+import express from "express"
+import { 
+    GetAllTasks,
+    GetTaskByCreator,
+    GetTaskById,
+    GetTasksByAssignee,
+    GetTasksByStatus,
+    CreateTask,
+    UpdateTask,
+    DeleteTask } from "../controllers/Task.controller"
+import { validateToken } from "../middlewares/JWT";
+
+
+   const TaskRouter = express.Router();
+
+   TaskRouter
+     .route("/")
+     .get(validateToken,GetAllTasks)
+     .post(validateToken,CreateTask)
+
+   TaskRouter
+     .route("/:id")
+     .get(validateToken,GetTaskById)
+     .patch(validateToken,UpdateTask)
+     .delete(DeleteTask)
+
+   TaskRouter
+     .route("/status/:status")
+     .get(validateToken,GetTasksByStatus)
+
+    TaskRouter
+     .route("/assignees/:assigneeId")
+     .get(validateToken,GetTasksByAssignee)
+
+    TaskRouter
+     .route("/created_by/:creatorId")
+     .get(validateToken,GetTaskByCreator)
+
+    
+
+    
+export default TaskRouter;
