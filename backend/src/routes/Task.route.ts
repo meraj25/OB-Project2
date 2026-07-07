@@ -8,7 +8,7 @@ import {
     CreateTask,
     UpdateTask,
     DeleteTask } from "../controllers/Task.controller"
-import { validateToken } from "../middlewares/JWT";
+import { validateToken } from "../middleware/JWT";
 
 
    const TaskRouter = express.Router();
@@ -17,12 +17,6 @@ import { validateToken } from "../middlewares/JWT";
      .route("/")
      .get(validateToken,GetAllTasks)
      .post(validateToken,CreateTask)
-
-   TaskRouter
-     .route("/:id")
-     .get(validateToken,GetTaskById)
-     .patch(validateToken,UpdateTask)
-     .delete(DeleteTask)
 
    TaskRouter
      .route("/status/:status")
@@ -35,6 +29,13 @@ import { validateToken } from "../middlewares/JWT";
     TaskRouter
      .route("/created_by/:creatorId")
      .get(validateToken,GetTaskByCreator)
+
+
+     TaskRouter
+     .route("/:id")
+     .get(validateToken,GetTaskById)
+     .patch(validateToken,UpdateTask)
+     .delete(DeleteTask)
 
     
 

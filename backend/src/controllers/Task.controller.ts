@@ -25,9 +25,9 @@ const GetTaskById = async (req:Request,res:Response,next:NextFunction) => {
 
     try{
 
-        const task_id = Number(req.params.Id)
+        const task_id = Number(req.params.id)
         if(!task_id){
-            return res.status(400).json({error:"invalid user id"})
+            return res.status(400).json({error:"invalid task id"})
         }
         if(isNaN(task_id)){
             return res.status(400).json({error:"please enter a valid task id "})
@@ -108,6 +108,8 @@ const GetTasksByStatus = async (req:Request,res:Response,next:NextFunction) => {
         }
 
         const tasks = await getTaskByStatus(status)
+
+        res.status(200).json(tasks);
 
     }catch(error){
         next(error)
