@@ -49,7 +49,7 @@ const findByStatus = (status: string) => {
 
 };
 
-const createdBy = (creatorId: number) => {
+const findByCreator = (creatorId: number) => {
     return prisma.tasks.findMany({
         where: {created_by:creatorId},
         include:{
@@ -61,7 +61,7 @@ const createdBy = (creatorId: number) => {
     });
 };
 
-const createTask = (data:{ title: string , description: string, created_by: number}) => {
+const create = (data:{ title: string , description: string, created_by: number}) => {
     return prisma.tasks.create({data});
 };
 
@@ -83,7 +83,7 @@ export {
     findById,
     findByAssignee,
     findByStatus,
-    createTask,
-    createdBy,
+    create,
+    findByCreator,
     updateById,
     deleteById}
