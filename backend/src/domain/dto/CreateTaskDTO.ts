@@ -1,4 +1,4 @@
-import {z} from "zod"
+import {optional, z} from "zod"
 
 const CreateTaskDTO = z.object({
 
@@ -6,6 +6,7 @@ const CreateTaskDTO = z.object({
     description:z.string().min(1,{message:"Description is required"}),
     created_by:z.number().int().positive("cannot be a negative value"),
     status: z.enum(["To Do", "In Progress", "Done"]).optional(),
+    assigneeIds: z.array(z.number().int().positive()).optional(),
 
 })
 

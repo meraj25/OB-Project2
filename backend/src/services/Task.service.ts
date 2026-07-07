@@ -48,7 +48,7 @@ const createTask = async (data:{title: string , description: string, created_by:
         throw { status: 400, message: "Bad request" }
     }
 
-    const task = await create(data)
+    const task = await create(parsed.data)
     return task;
 
 }
