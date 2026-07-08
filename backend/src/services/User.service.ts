@@ -1,7 +1,9 @@
 import { findAllUsers,findUserById,findUsersByName,create,update } from "../repositories/User.repository";
 import bcrypt from "bcrypt"
 import * as jwt from "jsonwebtoken"
-import { bytes } from "node:stream/consumers";
+import NotFoundError from "../domain/errors/not-found-error";
+import ValidationError from "../domain/errors/validation-error";
+
 
 const getAllUsers = async () => {
 
@@ -14,7 +16,7 @@ const getUserById = async (user_id: number) => {
     const user = await findUserById(user_id)
 
     if(!user){
-        throw{ status:404 , message: " User not found!"}
+        throw new ValidationError("User not found!");
     }
 
     const {password, ...safeUser} = user;
@@ -24,11 +26,27 @@ const getUserById = async (user_id: number) => {
 const createUser = async (data:{name?: string, password?:string}) => {
 
     if(!data.password){
-        throw{ status:404 , message: " Password is required!"};
+        throw new ValidationError("Password is required");
     }
 
+    const users = await findUsersByName(data.name);
+
+    let valid_name = null;
+    
+    for(const user of users){
+        if(!user.name) continue
+
+        if(user.name == data.name){
+            throw{ status: 409 , message: " User name is already taken, try a new one!"};
+        }else{
+
+            valid_name = data.name;
+            break;
+        }
+         
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await create({name:data.name, password:hashedPassword})
+    const user = await create({name:valid_name, password:hashedPassword})
 
     const {password, ...safeUser} = user;
     return safeUser; 
@@ -37,12 +55,12 @@ const createUser = async (data:{name?: string, password?:string}) => {
 
 const login = async (data:{name:string, password:string}) => {
     if(!data.name || !data.password){
-        throw { status: 401, message: "Name and password are required" };
+        throw new ValidationError("Username and the password are required")
     }
 
     const users = await findUsersByName(data.name)
     if(users.length ===0){
-        throw { status: 401, message: "Invalid credentials" };
+        throw new NotFoundError("No users found!")
     }
 
     let matchingUser = null;
@@ -58,7 +76,7 @@ const login = async (data:{name:string, password:string}) => {
     }
 
     if (!matchingUser) {
-    throw { status: 401, message: "Invalid credentials" };
+    throw new ValidationError ("Invalid credentials")
     }
 
     const accessToken = jwt.sign(
@@ -83,7 +101,7 @@ const updateUser = async (user_id: number , data: Partial<{name: string , passwo
         return safeUser;
 
     }catch(error){
-        throw {status: 404, message:"User not found!"}
+        throw new NotFoundError("User not found")
     }
 
 };
