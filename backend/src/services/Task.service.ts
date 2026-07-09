@@ -8,7 +8,13 @@ import {
     updateById,
     deleteById } from "../repositories/Task.repository";
 
-import CreateTaskDTO from "../domain/dto/CreateTaskDTO";
+import {CreateTaskDTO , UpdateTaskDTO} from "../domain/dto/CreateTaskDTO";
+import NotFoundError from "../domain/errors/not-found-error";
+import UnauthorizedError from "../domain/errors/unauthorized-error";
+import ValidationError from "../domain/errors/validation-error";
+import ForbiddenError from "../domain/errors/forbidden-error";
+
+
 
 const structured_task = (task:any) => ({
     ...task,
@@ -26,7 +32,7 @@ const getAllTasks = async () => {
 const getTaskById = async (task_id: number) => {
     const task = await findById(task_id);
     if(!task){
-        throw{ status:404, message: "Task not found!"}
+        throw new NotFoundError("task now found!");
     }
     return structured_task(task)
 };
@@ -34,18 +40,18 @@ const getTaskById = async (task_id: number) => {
 const createTask = async (data:{title: string , description: string, created_by: number}) => {
 
     if(!data.title){
-        throw{ status:400, message: "Title is required!"}   
+        throw new ValidationError("Required field!")
     }
     if(!data.description){
-        throw{ status:400, message: "Description is required!"}
+        throw new ValidationError("Required field!")
     }
     if(!data.created_by){
-        throw{ status:400, message: "Creator's Id is required!"}
+        throw new ValidationError("Required field!")
     }
 
     const parsed = CreateTaskDTO.safeParse(data)
     if(!parsed.success){
-        throw { status: 400, message: "Bad request" }
+        throw new ValidationError("validation error")
     }
 
     const task = await create(parsed.data)
@@ -57,7 +63,7 @@ const getTaskByAssignee = async(assigneeId: number) => {
 
     const task = await findByAssignee(assigneeId);
     if(task.length === 0){
-        throw{ status:404, message: "No tasks found!"}
+        throw new NotFoundError("Not found!");
     }
 
     return structured_task(task);
@@ -66,7 +72,7 @@ const getTaskByAssignee = async(assigneeId: number) => {
 const getTaskByStatus = async(status: string) => {
     const task = await findByStatus(status);
     if(task.length === 0){
-        throw{ status:404, message: "No tasks found!"}
+        throw new NotFoundError("Not found!");
     }
     return structured_task(task);
 }
@@ -74,7 +80,7 @@ const getTaskByStatus = async(status: string) => {
 const getTaskByCreator = async(created_by: number) => {
     const task = await findByCreator(created_by)
     if(task.length === 0){
-        throw{ status:404, message: "No tasks found!"}
+        throw new NotFoundError("Not found!");
     }
 
     return structured_task(task);
@@ -82,21 +88,59 @@ const getTaskByCreator = async(created_by: number) => {
 }
 
 
-const updateTask = async (task_id: number, data: Partial<{ title: string, description: string, status: string }>) => {
+const updateTask = async (task_id: number, data: Partial<{ title: string, description: string, status: string }>,user_id:number) => {
 
     try{
-         return await updateById(task_id,data);
+
+        const parsed = UpdateTaskDTO.safeParse(data);
+
+        if(!parsed.success){
+             throw new ValidationError("Bad request")
+        }
+
+        const task = await findById(task_id);
+
+        if(!task){
+            throw new NotFoundError("Not found!");
+        }
+
+        if(task.created_by !== user_id){
+
+            throw new ForbiddenError("Only the creator can update this task")
+        }
+
+        if(task.created_by === user_id){
+
+            return await updateById(task_id,data);
+        }
+
     }catch(error){
-        throw { status: 404, message: "Task not found" };
+        throw new NotFoundError("Not found!");
     }
 }
 
-const deleteTask = async (task_id: number) => {
+const deleteTask = async (task_id: number,user_id:number) => {
    try{
-    return await deleteById(task_id)
-   }catch(error){
-        throw { status: 404, message: "Task not found" };
-   }
+
+    const task = await findById(task_id)
+
+    if(!task){
+        throw new NotFoundError("No tasks found!");
+    }
+
+    if(task.created_by !== user_id){
+        throw new ForbiddenError("Only the creator can update this task")
+    }
+
+    if(task.created_by === user_id){
+
+            return await deleteById(task_id)
+    }
+
+
+    }catch(error){
+        throw new NotFoundError("Not found!");
+    }
 }
 
 export {

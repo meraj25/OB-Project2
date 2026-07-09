@@ -1,4 +1,4 @@
-import {optional, z} from "zod"
+import { z } from "zod"
 
 const CreateTaskDTO = z.object({
 
@@ -10,5 +10,7 @@ const CreateTaskDTO = z.object({
 
 })
 
-export default CreateTaskDTO;
+const UpdateTaskDTO = CreateTaskDTO.omit({created_by:true,assigneeIds:true}).partial();
+
+export  {CreateTaskDTO,UpdateTaskDTO}
 
