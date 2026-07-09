@@ -7,7 +7,13 @@ import {
     createTask,
     updateTask,
     deleteTask } from "../services/Task.service";
-import { Request,Response,NextFunction } from "express";
+import { Request,Response,NextFunction } from "express";        
+import ValidationError from "../domain/errors/validation-error";
+import NotFoundError from "../domain/errors/not-found-error";
+
+
+
+
 
 const GetAllTasks = async (req:Request, res:Response,next:NextFunction) => {
 
@@ -27,10 +33,10 @@ const GetTaskById = async (req:Request,res:Response,next:NextFunction) => {
 
         const task_id = Number(req.params.id)
         if(!task_id){
-            return res.status(400).json({error:"invalid task id"})
+            return new ValidationError("Required field")
         }
         if(isNaN(task_id)){
-            return res.status(400).json({error:"please enter a valid task id "})
+            return new ValidationError("Please enter a valid task_id")
         }
 
         const tasks = await getTaskById(task_id);
@@ -60,10 +66,10 @@ const GetTasksByAssignee = async (req:Request,res:Response,next:NextFunction)  =
     try{
         const assignee_id = Number(req.params.assigneeId)
         if(!assignee_id){
-            return res.status(400).json({error:"invalid assignee id"})
+            return new ValidationError("Required field")
         }
         if(isNaN(assignee_id)){
-            return res.status(400).json({error:"please enter a valid assignee id "})
+            return new ValidationError("Invalid input")
         }
         const tasks = await getTaskByAssignee(assignee_id)
 
@@ -81,10 +87,10 @@ const GetTaskByCreator = async (req:Request,res:Response,next:NextFunction) => {
 
         const creator_id = Number(req.params.creatorId)
         if(!creator_id){
-            return res.status(400).json({error:"invalid creator id"})
+            return new ValidationError("Required field")
         }
         if(isNaN(creator_id)){
-            return res.status(400).json({error:"please enter a valid creator id "})
+            return new ValidationError("Invalid field")
         }
         const tasks = await getTaskByCreator(creator_id)
 
@@ -104,7 +110,7 @@ const GetTasksByStatus = async (req:Request,res:Response,next:NextFunction) => {
         const status = String(req.params.status)
 
         if(!status){
-            return res.status(400).json({error:"invalid status"})
+            return new ValidationError("Required field")
         }
 
         const tasks = await getTaskByStatus(status)
@@ -121,12 +127,14 @@ const UpdateTask = async(req:Request,res:Response,next:NextFunction) => {
 
     try{
 
+        const user_id = req.user.user_id;
+
         const task_id = Number(req.params.id)
         if(isNaN(task_id)){
-            return res.status(400).json({error:"please enter a valid task id "})
+            return new ValidationError("Invalid field");
         }
         const data = req.body
-        await updateTask(task_id,data)
+        await updateTask(task_id,data,user_id)
         res.status(201).json("task updated successfully")
 
 
@@ -139,13 +147,14 @@ const UpdateTask = async(req:Request,res:Response,next:NextFunction) => {
 const DeleteTask = async(req:Request,res:Response,next:NextFunction) => {
 
     try{
+        const user_id = req.user.user_id;
 
         const task_id = Number(req.params.id)
         if(isNaN(task_id)){
-            return res.status(400).json({error:"please enter a valid task id "})
+            return new ValidationError("Invalid filed");
         }
 
-        await deleteTask(task_id);
+        await deleteTask(task_id,user_id);
         res.status(201).json("Task deleted successfully")
 
     }catch(error){
