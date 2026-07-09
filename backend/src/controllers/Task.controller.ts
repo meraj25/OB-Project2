@@ -6,7 +6,8 @@ import {
     getTaskByStatus,
     createTask,
     updateTask,
-    deleteTask } from "../services/Task.service";
+    deleteTask,
+    getTasks } from "../services/Task.service";
 import { Request,Response,NextFunction } from "express";        
 import ValidationError from "../domain/errors/validation-error";
 import NotFoundError from "../domain/errors/not-found-error";
@@ -26,6 +27,18 @@ const GetAllTasks = async (req:Request, res:Response,next:NextFunction) => {
     }
 
 };
+
+const GetTasks = async (req:Request,res:Response,next:NextFunction) => {
+
+    try{
+
+        const results = await getTasks(req.query)
+        res.status(200).json(results)
+
+    }catch(error){
+     next(error)
+    }
+}
 
 const GetTaskById = async (req:Request,res:Response,next:NextFunction) => {
 
@@ -171,4 +184,5 @@ export {
     GetTasksByStatus,
     CreateTask,
     UpdateTask,
-    DeleteTask}
+    DeleteTask,
+    GetTasks}

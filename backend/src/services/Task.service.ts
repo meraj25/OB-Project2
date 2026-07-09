@@ -6,7 +6,8 @@ import {
     findByCreator,
     create,
     updateById,
-    deleteById } from "../repositories/Task.repository";
+    deleteById,
+    findPaginated } from "../repositories/Task.repository";
 
 import {CreateTaskDTO , UpdateTaskDTO} from "../domain/dto/CreateTaskDTO";
 import NotFoundError from "../domain/errors/not-found-error";
@@ -29,6 +30,36 @@ const getAllTasks = async () => {
     return tasks.map(structured_task);
 };
 
+const getTasks = async (query:{status?:string,assignee?:number,page?:string,limit?:string}) => {
+
+    const page = Math.max(1,Number(query.page) || 1);
+    const limit = Math.min(100,Math.max(1,Number(query.limit || 10)));
+
+    const assignee = query.assignee ? Number(query.assignee) : undefined;
+    if (query.assignee && isNaN(assignee as number)) {
+    throw { status: 400, message: "assignee must be a valid number" };
+    } 
+
+    const validStatus = ["To Do","In Progress","Done"]
+    if(query.status && !validStatus.includes(query.status)){
+        throw { status: 400, message: "Invalid status value" };
+    }
+
+    const {tasks, totalCount} = await findPaginated({status:query.status,assignee,page,limit}) ;
+
+    return {
+        data:tasks.map(structured_task),
+        pagination:{
+            page,
+            limit,
+            totalCount,
+            totalPages: Math.ceil(totalCount/limit),
+
+        },
+    };
+
+};
+
 const getTaskById = async (task_id: number) => {
     const task = await findById(task_id);
     if(!task){
@@ -37,7 +68,7 @@ const getTaskById = async (task_id: number) => {
     return structured_task(task)
 };
 
-const createTask = async (data:{title: string , description: string, created_by: number}) => {
+const createTask = async (data:{title: string , description: string, created_by: number,assigneeassigneeIds?:number[]}) => {
 
     if(!data.title){
         throw new ValidationError("Required field!")
@@ -151,4 +182,5 @@ export {
     getTaskByStatus,
     createTask,
     updateTask,
-    deleteTask}
+    deleteTask,
+    getTasks}
