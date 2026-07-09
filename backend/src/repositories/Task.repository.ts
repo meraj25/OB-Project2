@@ -1,3 +1,4 @@
+import { includes } from 'zod';
 import { prisma } from '../db/prisma'
 
 const findAllTasks = () => {
@@ -61,8 +62,27 @@ const findByCreator = (creatorId: number) => {
     });
 };
 
-const create = (data:{ title: string , description: string, created_by: number}) => {
-    return prisma.tasks.create({data});
+const create = (data:{ title: string , description: string, created_by: number, assigneeIds?:number[]}) => {
+
+    const {assigneeIds, ...taskData} = data
+
+    return prisma.tasks.create({
+
+        data: {...taskData,
+            task_assignees: assigneeIds?.length?
+            { 
+                create: assigneeIds.map((assignees) => ({assignees}))
+                
+            } : undefined,
+    },
+
+    include: {
+      users: true,
+      task_assignees: { include: { users: true } },
+    },
+
+
+    });
 };
 
 const updateById = (task_id: number, data: Partial<{ title: string; description: string; status: string}>) => {

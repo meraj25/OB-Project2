@@ -8,6 +8,8 @@ import {
     updateById,
     deleteById } from "../repositories/Task.repository";
 
+import CreateTaskDTO from "../domain/dto/CreateTaskDTO";
+
 const structured_task = (task:any) => ({
     ...task,
     creator: task.users,
@@ -32,7 +34,7 @@ const getTaskById = async (task_id: number) => {
 const createTask = async (data:{title: string , description: string, created_by: number}) => {
 
     if(!data.title){
-        throw{ status:400, message: "Title is required!"}
+        throw{ status:400, message: "Title is required!"}   
     }
     if(!data.description){
         throw{ status:400, message: "Description is required!"}
@@ -41,7 +43,12 @@ const createTask = async (data:{title: string , description: string, created_by:
         throw{ status:400, message: "Creator's Id is required!"}
     }
 
-    const task = await create(data)
+    const parsed = CreateTaskDTO.safeParse(data)
+    if(!parsed.success){
+        throw { status: 400, message: "Bad request" }
+    }
+
+    const task = await create(parsed.data)
     return task;
 
 }

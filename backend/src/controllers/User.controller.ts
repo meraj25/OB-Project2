@@ -1,5 +1,6 @@
 import { getAllUsers,getUserById,login,createUser,updateUser } from "../services/User.service";
-import {Request,Response,NextFunction, response} from "express"
+import {Request,Response,NextFunction} from "express";
+import ValidationError from "../domain/errors/validation-error";
 
 const Login = async (req:Request,res:Response,next:NextFunction) => {
     try{
@@ -39,7 +40,9 @@ const getuserbyId = async (req:Request, res:Response, next:NextFunction) => {
     try{
         const user_id = Number(req.params.id)
         if(isNaN(user_id))
-        return res.status(400).json({ error: "Invalid user id" });
+
+        return new ValidationError("please enter a valid input ")
+
 
         const user = await getUserById(user_id)
         res.status(200).json(user)
@@ -68,7 +71,7 @@ const updateUserbyId = async(req:Request, res:Response, next:NextFunction) => {
 
         const user_id = Number(req.params.id);
         if(isNaN(user_id))
-        return res.status(400).json({ error: "Invalid user id" });
+        return new ValidationError("please enter a valid input")
 
         const user = await updateUser(user_id,req.body)
         res.status(200).json(user)

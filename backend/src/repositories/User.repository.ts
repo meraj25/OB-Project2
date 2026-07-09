@@ -10,9 +10,9 @@ const findUserById = (user_id: number) => {
     })
 };
 
-const findUserByName = (name:string) => {
+const findUsersByName = (name:string) => {
 
-    return prisma.users.findFirst({where: {name}})
+    return prisma.users.findMany({where: {name}})
 };
 
 const create = (data: {name?: string; password?: string}) => {
@@ -29,7 +29,7 @@ const update = (user_id: number , data:Partial<{name: string; password: string}>
 export {
     findAllUsers,
     findUserById,
-    findUserByName,
+    findUsersByName,
     create,
     update,
     
