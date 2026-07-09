@@ -35,7 +35,7 @@ model tasks {
 
 model users {
   user_id        Int              @id @default(autoincrement())
-  name           String?          @db.VarChar(100)
+  name           String?          @unique(map: "unique_user_name") @db.VarChar(100)
   password       String?          @db.VarChar(255)
   task_assignees task_assignees[]
   tasks          tasks[]

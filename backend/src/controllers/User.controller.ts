@@ -40,7 +40,9 @@ const getuserbyId = async (req:Request, res:Response, next:NextFunction) => {
     try{
         const user_id = Number(req.params.id)
         if(isNaN(user_id))
-        return new ValidationError("please enter a valid ")
+
+        return new ValidationError("please enter a valid input ")
+
 
         const user = await getUserById(user_id)
         res.status(200).json(user)
@@ -69,7 +71,7 @@ const updateUserbyId = async(req:Request, res:Response, next:NextFunction) => {
 
         const user_id = Number(req.params.id);
         if(isNaN(user_id))
-        return new ValidationError("please enter a valid user id")
+        return new ValidationError("please enter a valid input")
 
         const user = await updateUser(user_id,req.body)
         res.status(200).json(user)

@@ -16,7 +16,7 @@ const getUserById = async (user_id: number) => {
     const user = await findUserById(user_id)
 
     if(!user){
-        throw new ValidationError("User not found!");
+        throw new ValidationError("Not found!");
     }
 
     const {password, ...safeUser} = user;
@@ -26,7 +26,7 @@ const getUserById = async (user_id: number) => {
 const createUser = async (data:{name?: string, password?:string}) => {
 
     if(!data.password){
-        throw new ValidationError("Password is required");
+        throw new ValidationError("Required credentials");
     }
 
     const users = await findUsersByName(data.name);
@@ -55,12 +55,12 @@ const createUser = async (data:{name?: string, password?:string}) => {
 
 const login = async (data:{name:string, password:string}) => {
     if(!data.name || !data.password){
-        throw new ValidationError("Username and the password are required")
+        throw new ValidationError("Require credentials")
     }
 
     const users = await findUsersByName(data.name)
     if(users.length ===0){
-        throw new NotFoundError("No users found!")
+        throw new NotFoundError("Not found error!")
     }
 
     let matchingUser = null;
@@ -101,7 +101,7 @@ const updateUser = async (user_id: number , data: Partial<{name: string , passwo
         return safeUser;
 
     }catch(error){
-        throw new NotFoundError("User not found")
+        throw new NotFoundError("Not found")
     }
 
 };
