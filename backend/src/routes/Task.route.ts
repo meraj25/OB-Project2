@@ -7,7 +7,9 @@ import {
     GetTasksByStatus,
     CreateTask,
     UpdateTask,
-    DeleteTask } from "../controllers/Task.controller"
+    DeleteTask,
+    GetTasks
+    } from "../controllers/Task.controller"
 import { validateToken } from "../middleware/JWT";
 
 
@@ -15,7 +17,7 @@ import { validateToken } from "../middleware/JWT";
 
    TaskRouter
      .route("/")
-     .get(validateToken,GetAllTasks)
+     .get(validateToken,GetTasks)
      .post(validateToken,CreateTask)
 
    TaskRouter

@@ -1,4 +1,4 @@
-import { includes } from 'zod';
+import { Prisma } from '../generated/prisma/client';
 import { prisma } from '../db/prisma'
 
 const findAllTasks = () => {
@@ -12,6 +12,43 @@ const findAllTasks = () => {
     });
 
 };
+
+const findPaginated = async (filters:{
+    status?:string,
+    assignee?:number,
+    page:number,
+    limit:number}) => {
+
+        const {status,assignee,page,limit} = filters;
+
+        const where: Prisma.tasksWhereInput = {
+            ...(status && {status}),
+            ...(assignee && {task_assignees:{some:{assignees:assignee}}})
+        }
+
+        const[tasks,totalCount] = await Promise.all([
+
+            prisma.tasks.findMany({
+                where,
+                include:{
+                    users:true,
+                    task_assignees:{
+                     include:{ users:true},
+                     },
+                 },
+
+                 skip: (page - 1) * limit,
+                 take:limit,
+                 orderBy:{task_id:"desc"}
+            }),
+
+            prisma.tasks.count({where}),
+        ]);
+
+        return {tasks, totalCount}
+
+
+}
 
 const findById = (task_id:number) =>{
     return prisma.tasks.findUnique({
@@ -106,4 +143,5 @@ export {
     create,
     findByCreator,
     updateById,
-    deleteById}
+    deleteById,
+    findPaginated}
