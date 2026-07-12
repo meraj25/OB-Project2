@@ -2,6 +2,8 @@ import { Request,Response,NextFunction } from "express";
 import ValidationError from "../domain/errors/validation-error";
 import NotFoundError from "../domain/errors/not-found-error";
 import UnauthorizedError from "../domain/errors/unauthorized-error";
+import { ZodError } from "zod";
+
 
 const globalErrorHandlingMiddleware = (
   err: Error,
@@ -9,26 +11,49 @@ const globalErrorHandlingMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log("=== ERROR CAUGHT ===");
-  console.log("Error name:", err.name);
-  console.log("Error message:", err.message);
-  console.log("Error stack:", err.stack);
-  console.log("Full error:", err);
+  console.log({
+    name:err.name,
+    message:err.message,
+    stack:err.stack,
+    path:req.originalUrl,
+    method:req.method,
+    timeStamp:new Date(). toISOString(),
+  });
+
   
   if (err instanceof ValidationError) {
-    res.status(400).json({ message: err.message, error: err.message });
-  } else if (err instanceof NotFoundError) {
-    res.status(404).json({ message: err.message });
-  } else if (err instanceof UnauthorizedError) {
-    res.status(401).json({ message: err.message });
-  } else {
-    
-    res.status(500).json({ 
-      message: "Internal server error",
-      error: err.message,  
-      details: err.toString() 
-    });
+    res.status(400).json({ message: err.message });
+    return;
   }
+
+  if (err instanceof NotFoundError) {
+    res.status(404).json({ message: err.message });
+    return;
+  }
+
+  if (err instanceof UnauthorizedError) {
+    res.status(401).json({ message: err.message });
+    return;
+  }
+
+  if(err instanceof ZodError){
+    res.status(400).json({
+      message:"validation failed",
+      errors: err.issues.map((i) =>({
+        path: i.path.join("."),
+        message:i.message,
+      })),
+    });
+    return
+
+    
+  }
+   else {
+    
+    res.status(500).json({ message: "Internal server error"});
+  }
+  return;
+
 };
 
 export default globalErrorHandlingMiddleware;

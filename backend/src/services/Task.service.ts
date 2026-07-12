@@ -146,7 +146,7 @@ const updateTask = async (task_id: number, data: Partial<{ title: string, descri
         }
 
     }catch(error){
-        throw new NotFoundError("Not found!");
+        throw error;
     }
 }
 
@@ -170,7 +170,7 @@ const deleteTask = async (task_id: number,user_id:number) => {
 
 
     }catch(error){
-        throw new NotFoundError("Not found!");
+        throw error;
     }
 }
 
