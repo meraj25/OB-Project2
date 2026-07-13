@@ -1,14 +1,22 @@
-import { getAllUsers,getUserById,login,createUser,updateUser } from "../services/User.service";
+import { getAllUsers,getUserById,login,createUser,updateUser,rotateRefreshToken } from "../services/User.service";
+import { revokeAllForUser } from "../repositories/RefreshToken.repository";
 import {Request,Response,NextFunction} from "express";
 import ValidationError from "../domain/errors/validation-error";
+import UnauthorizedError from "../domain/errors/unauthorized-error";
 
 const Login = async (req:Request,res:Response,next:NextFunction) => {
     try{
 
-        const {user , accessToken} = await login(req.body)
+        const {user , accessToken, refreshToken } = await login(req.body)
 
         res.cookie("access-Token", accessToken,{
             maxAge: 24 * 60 * 60 * 1000, 
+            httpOnly: true,
+            sameSite: "lax",
+        });
+
+        res.cookie("refresh-Token", refreshToken,{
+            maxAge: 7 * 24 * 60 * 60 * 1000, 
             httpOnly: true,
             sameSite: "lax",
         });
@@ -20,6 +28,30 @@ const Login = async (req:Request,res:Response,next:NextFunction) => {
         next(error)
 
     }
+}
+
+const Refresh = async (req:Request, res:Response, next:NextFunction) => {
+
+    try{
+
+        const oldRefreshToken = req.cookies["refresh-Token"];
+        if(!oldRefreshToken){
+            throw new UnauthorizedError("No refresh token provided");
+        }
+
+        const newRefreshToken = await rotateRefreshToken(oldRefreshToken)
+
+        res.cookie("refresh-Token", newRefreshToken,{
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: "lax",
+        });
+        res.status(200).json({message: "Token refreshed successfully"})
+
+    }catch(error){
+        next(error)
+    }
+
 }
 
 const getallUsers = async (req:Request, res:Response, next:NextFunction) => {
@@ -85,7 +117,14 @@ const Logout = async(req:Request, res: Response, next: NextFunction) => {
 
     try{
 
+         const user_id = req.user?.user_id;
+
+        if (user_id) {
+            await revokeAllForUser(user_id);
+        }
+
         res.clearCookie("access-Token")
+        res.clearCookie("refresh-Token")
         res.status(200).json({message: "User logged out successfully"})
 
     }catch(error){
@@ -98,4 +137,4 @@ const getuser = async(req:Request, res: Response) => {
 res.status(200).json({user: req.user})
 }
 
-export {Login,registerUser,getallUsers,getuserbyId,updateUserbyId,Logout,getuser}
+export {Login,registerUser,getallUsers,getuserbyId,updateUserbyId,Logout,getuser,Refresh}

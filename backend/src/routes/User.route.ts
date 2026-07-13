@@ -1,5 +1,5 @@
 import express from "express"
-import { getallUsers,getuserbyId,registerUser,Login,Logout,updateUserbyId,getuser } from "../controllers/User.controller"
+import { getallUsers,getuserbyId,registerUser,Login,Logout,updateUserbyId,getuser,Refresh } from "../controllers/User.controller"
 import { validateToken } from "../middleware/JWT";
 
 const UserRouter = express.Router();
@@ -16,6 +16,10 @@ const UserRouter = express.Router();
     UserRouter
       .route("/login")
       .post(Login)
+
+     UserRouter
+      .route("/refresh")
+      .post(Refresh)
 
     UserRouter
       .route("/logout")
