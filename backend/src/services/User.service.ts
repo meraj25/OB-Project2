@@ -76,7 +76,10 @@ const login = async (data:{name:string, password:string}) => {
 
     const accessToken = jwt.sign(
         { user_id: matchingUser.user_id, name: matchingUser.name},
-        process.env.JWT_SECRET as string)
+        process.env.JWT_SECRET as string,
+        { expiresIn: "2m" }
+    );
+        
 
     const refreshToken = await issueRefreshToken(matchingUser.user_id)
 
@@ -116,6 +119,7 @@ const issueRefreshToken = async (user_id:number) => {
 
 const rotateRefreshToken = async (rawToken:string) => {
 
+   
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
     const existing = await findByHash(tokenHash);
 
@@ -124,7 +128,10 @@ const rotateRefreshToken = async (rawToken:string) => {
     }
 
     await revoke(existing.token_id);
-    return issueRefreshToken(existing.user_id);
+
+     const newRefreshToken = await issueRefreshToken(existing.user_id); 
+
+     return {newRefreshToken, user_id: existing.user_id}
 
 }
 

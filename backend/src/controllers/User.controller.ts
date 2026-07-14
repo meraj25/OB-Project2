@@ -3,6 +3,10 @@ import { revokeAllForUser } from "../repositories/RefreshToken.repository";
 import {Request,Response,NextFunction} from "express";
 import ValidationError from "../domain/errors/validation-error";
 import UnauthorizedError from "../domain/errors/unauthorized-error";
+import { findUserById } from "../repositories/User.repository";
+import bcrypt from "bcrypt"
+import crypto from "crypto"
+import * as jwt from "jsonwebtoken"
 
 const Login = async (req:Request,res:Response,next:NextFunction) => {
     try{
@@ -32,6 +36,8 @@ const Login = async (req:Request,res:Response,next:NextFunction) => {
 
 const Refresh = async (req:Request, res:Response, next:NextFunction) => {
 
+   
+
     try{
 
         const oldRefreshToken = req.cookies["refresh-Token"];
@@ -39,7 +45,23 @@ const Refresh = async (req:Request, res:Response, next:NextFunction) => {
             throw new UnauthorizedError("No refresh token provided");
         }
 
-        const newRefreshToken = await rotateRefreshToken(oldRefreshToken)
+        const {newRefreshToken, user_id} = await rotateRefreshToken(oldRefreshToken)
+
+        const user = await findUserById(user_id);
+
+        console.log("user",user);
+
+        const accessToken = jwt.sign(
+                { user_id: user.user_id, name: user.name},
+                process.env.JWT_SECRET as string,
+                { expiresIn: "10m"}
+            );
+
+        res.cookie("access-Token", accessToken, {
+            maxAge: 2 * 60 * 1000,
+            httpOnly: true,
+            sameSite: "lax",
+        });
 
         res.cookie("refresh-Token", newRefreshToken,{
             maxAge: 7 * 24 * 60 * 60 * 1000,
