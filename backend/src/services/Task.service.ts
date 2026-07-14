@@ -30,7 +30,7 @@ const getAllTasks = async () => {
     return tasks.map(structured_task);
 };
 
-const getTasks = async (query:{status?:string,assignee?:number,page?:string,limit?:string}) => {
+const getTasks = async (query:{status?:string,assignee?:number,creator?: number , page?:string,limit?:string}) => {
 
     const page = Math.max(1,Number(query.page) || 1);
     const limit = Math.min(100,Math.max(1,Number(query.limit || 10)));
@@ -40,12 +40,17 @@ const getTasks = async (query:{status?:string,assignee?:number,page?:string,limi
     throw { status: 400, message: "assignee must be a valid number" };
     } 
 
+    const creator = query.creator ? Number(query.creator) : undefined;
+    if (query.creator && isNaN(creator as number)) {
+        throw { status: 400, message: "creator must be a valid number" };
+    }
+
     const validStatus = ["To Do","In Progress","Done"]
     if(query.status && !validStatus.includes(query.status)){
         throw { status: 400, message: "Invalid status value" };
     }
 
-    const {tasks, totalCount} = await findPaginated({status:query.status,assignee,page,limit}) ;
+    const {tasks, totalCount} = await findPaginated({status:query.status,assignee,creator,page,limit}) ;
 
     return {
         data:tasks.map(structured_task),
@@ -68,7 +73,7 @@ const getTaskById = async (task_id: number) => {
     return structured_task(task)
 };
 
-const createTask = async (data:{title: string , description: string, created_by: number,assigneeassigneeIds?:number[]}) => {
+const createTask = async (data:{title: string , description: string,status:string, created_by: number,assigneeIds?:number[]}) => {
 
     if(!data.title){
         throw new ValidationError("Required field!")
@@ -77,6 +82,9 @@ const createTask = async (data:{title: string , description: string, created_by:
         throw new ValidationError("Required field!")
     }
     if(!data.created_by){
+        throw new ValidationError("Required field!")
+    }
+    if(!data.status){
         throw new ValidationError("Required field!")
     }
 

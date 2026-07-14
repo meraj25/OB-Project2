@@ -37,7 +37,7 @@ import { validateToken } from "../middleware/JWT";
      .route("/:id")
      .get(validateToken,GetTaskById)
      .patch(validateToken,UpdateTask)
-     .delete(DeleteTask)
+     .delete(validateToken,DeleteTask)
 
     
 

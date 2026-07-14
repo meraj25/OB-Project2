@@ -16,14 +16,16 @@ const findAllTasks = () => {
 const findPaginated = async (filters:{
     status?:string,
     assignee?:number,
+    creator?:number,
     page:number,
     limit:number}) => {
 
-        const {status,assignee,page,limit} = filters;
+        const {status,assignee,creator,page,limit} = filters;
 
         const where: Prisma.tasksWhereInput = {
             ...(status && {status}),
-            ...(assignee && {task_assignees:{some:{assignees:assignee}}})
+            ...(assignee && {task_assignees:{some:{assignees:assignee}}}),
+            ...(creator && { created_by: creator }),
         }
 
         const[tasks,totalCount] = await Promise.all([
