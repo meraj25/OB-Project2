@@ -22,7 +22,7 @@ app.use('/api/tasks',TaskRouter)
 
 app.use(globalErrorHandlingMiddleware);
 
-const PORT = 5000;
+const PORT = 8000;
 
 app.listen(PORT, () => {
     console.log(`server is running on ${PORT}`);
